@@ -154,8 +154,8 @@ DEPARTMENT OF COMPUTER SCIENCE AND ENGINEER
 \begin{table}[h]
 \begin{tabular}{rrl}
 \hspace{5.1cm} 
-&\textit{Student: } & Student Name\\
-&\textit{ID: } & 123456 \\
+&\textit{Student: } & Vũ Minh Quang\\
+&\textit{ID: } & 1852699 \\
 
 \end{tabular}
 \end{table}
@@ -190,7 +190,7 @@ Please login to Thingsboard and create a device, named \textbf{IoT Project} for 
 In this step, please create a github account and upload your source code to github. The link of your source code is required to present in this report.
 
 \begin{center}
-    \url{YOUR-GITHUB-LINK-HERE}
+    \url{https://github.com/quangvuminh2000/IOT_CC01_SEM212/tree/master}
 \end{center}
 
 The manual video for this step can be found at:
@@ -211,7 +211,7 @@ Please use a UI in the Analogue Gause and Digital Gause in your dashboard, to pr
 
 Publish your dashboard and present the link in this report
 \begin{center}
-    \url{YOUR-DASHBOARD-LINK-HERE}
+    \url{https://demo.thingsboard.io/dashboard/bb04beb0-7806-11ec-9ed9-f9294d38ab44?publicId=0d613390-6d09-11ec-8159-03103585248e}
 \end{center}
 
 A manual video is posted at:
@@ -229,5 +229,71 @@ A manual video is posted at:
 
 \section{Extra point (1 point)}
 Dynamic update the current longtitude and latitude. Explain your implementation in python source code such as the library which is used, some main python source code to get the value of longtitude and latitude.
+
+
+% Explain the code
+\subsection{Explanation}
+I use \textbf{geocoder} library to get the location of my router which is located inside my house.
+
+The code I use is:
+
+\begin{lstlisting}
+import geocoder
+latitude, longitude = geocoder.ip('me').latlng
+\end{lstlisting}
+
+Where \lstinline{geocoder.ip('me')} means getting the information of my IP on the geolocation. Then I can get the latitude and the longitude according to my IP on google map simply by accessing the \lstinline{latlng} attribute.
+
+There is also an \lstinline{generate_random_location} function inside the \textit{utils.py} script. What it does is that, instead of letting the location being static at the current ip point on the map, the location will randomly move to a location in the $20$ meters radius around the last position.
+
+Here is my code for the \lstinline{generate_random_location} function:
+
+\begin{lstlisting}
+def generate_random_location(x0, y0, r):
+    """
+    Generate the random location within the radius r of the position (x0, y0)
+
+    Parameters
+    ----------
+    x0 : float
+        Longitude of the starting location
+    y0 : float
+        Latitude of the starting location
+    r : float
+        The radius of the surrounding location (meters)
+
+    Returns
+    -------
+    Tuple[float, float]
+        New random position in the radius
+    """
+
+    # Convert radius to degree
+    r_d = r/111000
+
+    # Generate 2 iid values
+    u, v = np.random.uniform(0, 1, 2)
+
+    # Create a random manhattan distance from the current position
+    w = r_d * math.sqrt(u)
+
+    # Create a random orientation of the new position
+    t = 2*math.pi*v
+
+    # Generate new x,y such that x,y,w is 3 sides of a right triangle
+    x = w*math.cos(t)
+    y = w*math.sin(t)
+
+    # Adjust the x-coordinate for the shrinking of the east-west distances
+    new_x = x/math.cos(math.radians(y0))
+
+    # New position
+    new_longitude = new_x + x0
+    new_latitude = y + y0
+
+    return (new_longitude, new_latitude)
+\end{lstlisting}
+
+Generally what it does is that it will first generate the random distance $w$ in the range of $w \in (0-r]$ where $r$ is the input radius. Then it will create a random angle $t$ such that $0 < t <= 2\pi$. Finally, it will create 2 number $x, y$ such that $x, y, w$ is 3 side of the right triangle where $w$ is the length of the hypotenuse side with respect to angle $t$. It can easily being seen that the distance of the old and new points $(x0+x, y0+y)$ is strictly less than $r$.
 
 \end{document}
